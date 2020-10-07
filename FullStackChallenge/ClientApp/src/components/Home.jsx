@@ -1,16 +1,14 @@
-﻿import React from 'react'
-import connect from 'redux'
+﻿import React from "react";
+import connect from "redux";
 
-export default () => {
-    function getLinhas() {
-        return produtos.map((produto, i) => {
-            return (
-                <tr key={produto.id} className={i % 2 === 0 ? 'Par' : 'Impar'}>
+export default (props) => {
+  function getLinhas() {
+    return produtos.map((produto, i) => {
+      return (
+        <tr key={produto.id} className={i % 2 === 0 ? "Par" : "Impar"}></tr>
+      );
+    });
+  }
+};
 
-                </tr>
-            )
-        })
-    }
-}
-
-export default connect()Home();
+export default connect()(Home);

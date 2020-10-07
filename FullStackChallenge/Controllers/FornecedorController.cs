@@ -1,7 +1,8 @@
-﻿using FullStackChallenge.Business;
-using FullStackChallenge.Data.ValueObjects;
+﻿using Business;
 using Microsoft.AspNetCore.Mvc;
+using Model.Data.ValueObjects;
 using System.Collections.Generic;
+using System.Linq;
 using Tapioca.HATEOAS;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -25,7 +26,6 @@ namespace FullStackChallenge.Controllers
         [ProducesResponseType(200, Type = typeof(List<Fornecedor>))]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
-        [ProducesResponseType(401)]
         [TypeFilter(typeof(HyperMediaFilter))]
         public List<Fornecedor> Get()
         {
@@ -33,20 +33,37 @@ namespace FullStackChallenge.Controllers
         }
 
         // GET api/<FornecedorController>/5
-        [HttpGet("{documento}")]
+        [HttpGet("find")]
         [ProducesResponseType(200, Type = typeof(Fornecedor))]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
-        [ProducesResponseType(401)]
         [ProducesResponseType(404)]
         [TypeFilter(typeof(HyperMediaFilter))]
-        public ActionResult Get(long documento)
+        public ActionResult Get(long? documento, string email, string nome)
         {
-            if (documento == null)
+            if (documento == null && string.IsNullOrWhiteSpace(email) && string.IsNullOrWhiteSpace(nome))
                 return BadRequest();
+            else if (documento.HasValue)
+            {
+                var retorno = new List<Fornecedor>() { _fornecedorBusiness.FindByCpfCnpj(documento.Value) };
+
+                if (!retorno.Any())
+                    return NotFound();
+                else
+                    return Ok(retorno);
+            }
+            else if (!string.IsNullOrWhiteSpace(email))
+            {
+                var retorno = new List<Fornecedor>() { _fornecedorBusiness.FindByEmail(email) };
+
+                if (!retorno.Any())
+                    return NotFound();
+                else
+                    return Ok(retorno);
+            }
             else
             {
-                var retorno = _fornecedorBusiness.FindByCpfCnpj(documento);
+                var retorno = _fornecedorBusiness.FindByName(nome);
 
                 if (retorno == null)
                     return NotFound();
@@ -60,7 +77,6 @@ namespace FullStackChallenge.Controllers
         [ProducesResponseType(201, Type = typeof(Fornecedor))]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
-        [ProducesResponseType(401)]
         [TypeFilter(typeof(HyperMediaFilter))]
         public ActionResult Post([FromBody] Fornecedor fornecedor)
         {
@@ -74,7 +90,6 @@ namespace FullStackChallenge.Controllers
         [HttpPut]
         [ProducesResponseType(202, Type = typeof(Fornecedor))]
         [ProducesResponseType(400)]
-        [ProducesResponseType(401)]
         [TypeFilter(typeof(HyperMediaFilter))]
         public ActionResult Put([FromBody] Fornecedor fornecedor)
         {
@@ -88,24 +103,18 @@ namespace FullStackChallenge.Controllers
         [HttpDelete("{documento}")]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
-        [ProducesResponseType(401)]
         [TypeFilter(typeof(HyperMediaFilter))]
         public ActionResult Delete(long documento)
         {
-            if (documento == null)
-                return BadRequest();
+            var fornecedor = _fornecedorBusiness.FindByCpfCnpj(documento);
+
+            if (fornecedor == null)
+                return NotFound();
             else
             {
-                var fornecedor = _fornecedorBusiness.FindByCpfCnpj(documento);
+                _fornecedorBusiness.Delete(fornecedor);
 
-                if (fornecedor == null)
-                    return NotFound();
-                else
-                {
-                    _fornecedorBusiness.Delete(fornecedor);
-
-                    return Ok();
-                }
+                return Ok();
             }
         }
     }

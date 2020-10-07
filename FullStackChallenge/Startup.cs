@@ -1,24 +1,20 @@
-using FullStackChallenge.Business;
-using FullStackChallenge.Business.Implementation;
-using FullStackChallenge.Hypermedia;
-using FullStackChallenge.Model.Context;
-using FullStackChallenge.Repository;
-using FullStackChallenge.Repository.Generic;
-using FullStackChallenge.Repository.Implementation;
+using Business;
+using Business.Implementation;
+using Dapper.FluentMap;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Rewrite;
 using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
-using Microsoft.Data.SqlClient;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Net.Http.Headers;
 using Microsoft.OpenApi.Models;
-using System;
-using System.Collections.Generic;
+using Model.Entities.Map;
+using Model.Hypermedia;
+using Repository;
+using Repository.Implementation;
 using Tapioca.HATEOAS;
 
 namespace FullStackChallenge
@@ -38,9 +34,14 @@ namespace FullStackChallenge
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            var connectionString = Configuration["SqlServerConnection:SqlServerConnectionString"];
+            services.AddSingleton(Configuration);
 
-            services.AddDbContext<SqlServerContext>(option => option.UseSqlServer(connectionString));
+            FluentMapper.Initialize(config =>
+            {
+                config.AddMap(new EmpresaMap());
+                config.AddMap(new FornecedorMap());
+                config.AddMap(new EmpresaFornecedorMap());
+            });
 
             services.AddApiVersioning(options =>
             {
@@ -54,8 +55,6 @@ namespace FullStackChallenge
             {
                 configuration.RootPath = "ClientApp/build";
             });
-
-            ExecuteMigrations(connectionString);
 
             ExecuteHateOas(services);
 
@@ -73,7 +72,6 @@ namespace FullStackChallenge
             services.AddScoped<IFornecedorBusiness, FornecedorBusinessImplementation>();
             services.AddScoped<IEmpresaRepository, EmpresaRepository>();
             services.AddScoped<IFornecedorRepository, FornecedorRepository>();
-            services.AddScoped(typeof(IRepository<>), typeof(GenericRepository<>));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -140,30 +138,6 @@ namespace FullStackChallenge
             filterOptions.ObjectContentResponseEnricherList.Add(new FornecedorEnricher());
 
             services.AddSingleton(filterOptions);
-        }
-
-        private void ExecuteMigrations(string connectionString)
-        {
-            if (_environment.IsDevelopment())
-            {
-                try
-                {
-                    var evolveConnection = new SqlConnection(connectionString);
-
-                    var evolve = new Evolve.Evolve(evolveConnection)
-                    {
-                        Locations = new List<string> { "database/migrations" },
-                        IsEraseDisabled = true
-                    };
-
-                    evolve.Migrate();
-                }
-                catch (Exception err)
-                {
-                    var t = err.Message;
-                    throw;
-                }
-            }
         }
     }
 }

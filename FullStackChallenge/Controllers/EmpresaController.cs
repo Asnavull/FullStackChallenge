@@ -1,7 +1,8 @@
-﻿using FullStackChallenge.Business;
-using FullStackChallenge.Data.ValueObjects;
+﻿using Business;
 using Microsoft.AspNetCore.Mvc;
+using Model.Data.ValueObjects;
 using System.Collections.Generic;
+using System.Linq;
 using Tapioca.HATEOAS;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -25,7 +26,6 @@ namespace FullStackChallenge.Controllers
         [ProducesResponseType(200, Type = typeof(List<Empresa>))]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
-        [ProducesResponseType(401)]
         [TypeFilter(typeof(HyperMediaFilter))]
         public List<Empresa> Get()
         {
@@ -33,20 +33,28 @@ namespace FullStackChallenge.Controllers
         }
 
         // GET api/<EmpresaController>/5
-        [HttpGet("{documento}")]
-        [ProducesResponseType(200, Type = typeof(Empresa))]
+        [HttpGet("find")]
+        [ProducesResponseType(200, Type = typeof(List<Empresa>))]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
-        [ProducesResponseType(401)]
         [ProducesResponseType(404)]
         [TypeFilter(typeof(HyperMediaFilter))]
-        public ActionResult Get(long documento)
+        public ActionResult Get(long? documento, string nome)
         {
-            if (documento == null)
+            if (documento == null && string.IsNullOrWhiteSpace(nome))
                 return BadRequest();
+            else if (documento.HasValue)
+            {
+                var retorno = new List<Empresa>() { _empresaBusiness.FindByCnpj(documento.Value) };
+
+                if (!retorno.Any())
+                    return NotFound();
+                else
+                    return new ObjectResult(retorno);
+            }
             else
             {
-                var retorno = _empresaBusiness.FindByCnpj(documento);
+                var retorno = _empresaBusiness.FindByName(nome);
 
                 if (retorno == null)
                     return NotFound();
@@ -60,7 +68,6 @@ namespace FullStackChallenge.Controllers
         [ProducesResponseType(201, Type = typeof(Fornecedor))]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
-        [ProducesResponseType(401)]
         [TypeFilter(typeof(HyperMediaFilter))]
         public ActionResult Post([FromBody] Empresa empresa)
         {
@@ -74,7 +81,6 @@ namespace FullStackChallenge.Controllers
         [HttpPut]
         [ProducesResponseType(202, Type = typeof(Fornecedor))]
         [ProducesResponseType(400)]
-        [ProducesResponseType(401)]
         [TypeFilter(typeof(HyperMediaFilter))]
         public ActionResult Put([FromBody] Empresa empresa)
         {
@@ -88,28 +94,20 @@ namespace FullStackChallenge.Controllers
         [HttpDelete("{documento}")]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
-        [ProducesResponseType(401)]
         [TypeFilter(typeof(HyperMediaFilter))]
         public ActionResult Delete(long documento)
         {
-            if (documento == null)
+            var empresa = _empresaBusiness.FindByCnpj(documento);
+
+            if (empresa == null)
             {
-                return BadRequest();
+                return NotFound();
             }
             else
             {
-                var empresa = _empresaBusiness.FindByCnpj(documento);
+                _empresaBusiness.Delete(empresa);
 
-                if (empresa == null)
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    _empresaBusiness.Delete(empresa);
-
-                    return Ok();
-                }
+                return Ok();
             }
         }
     }
