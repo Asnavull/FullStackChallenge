@@ -1,6 +1,9 @@
 using Business;
 using Business.Implementation;
+using Business.Validation;
 using Dapper.FluentMap;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -11,6 +14,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Net.Http.Headers;
 using Microsoft.OpenApi.Models;
+using Model.Data.ValueObjects;
 using Model.Entities.Map;
 using Model.Hypermedia;
 using Repository;
@@ -64,7 +68,7 @@ namespace FullStackChallenge
                 options.FormatterMappings.SetMediaTypeMappingForFormat("xml", MediaTypeHeaderValue.Parse("text/xml"));
                 options.FormatterMappings.SetMediaTypeMappingForFormat("json", MediaTypeHeaderValue.Parse("text/json"));
                 options.EnableEndpointRouting = false;
-            }).SetCompatibilityVersion(CompatibilityVersion.Latest).AddXmlSerializerFormatters();
+            }).SetCompatibilityVersion(CompatibilityVersion.Latest).AddXmlSerializerFormatters().AddFluentValidation();
 
             AddSwagger(services);
 
@@ -72,6 +76,9 @@ namespace FullStackChallenge
             services.AddScoped<IFornecedorBusiness, FornecedorBusinessImplementation>();
             services.AddScoped<IEmpresaRepository, EmpresaRepository>();
             services.AddScoped<IFornecedorRepository, FornecedorRepository>();
+
+            services.AddTransient<IValidator<Empresa>, EmpresaValidator>();
+            services.AddTransient<IValidator<Fornecedor>, FornecedorValidator>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

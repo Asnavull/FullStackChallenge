@@ -10,7 +10,7 @@ namespace Model.Hypermedia
         protected override Task EnrichModel(Fornecedor content, IUrlHelper urlHelper)
         {
             var path = "api/v1/fornecedor";
-            var url = new { controller = path, id = content.CpfCnpj };
+            var url = new { controller = path, id = content.CpfCnpj, email = content.Email, nome = content.Nome };
 
             content.Links.Add(new HyperMediaLink()
             {

@@ -1,6 +1,7 @@
 ﻿using Model.Data.Converters;
 using Model.Data.ValueObjects;
 using Repository;
+using System;
 using System.Collections.Generic;
 
 namespace Business.Implementation
@@ -16,15 +17,26 @@ namespace Business.Implementation
             _converter = new EmpresaConverter();
         }
 
-        public Empresa Create(Empresa empresa) =>
-            _converter.Parse(_repository.Create(_converter.Parse(empresa)));
-
-        public void Delete(Empresa empresa)
+        public Empresa AddFornecedor(Guid idEmpresa, Guid idFornecedor)
         {
-            var regEmpresa = _repository.FindByCnpj(empresa.Cnpj);
+            return _converter.Parse(_repository.AddFornecedor(idEmpresa, idFornecedor));
+        }
 
-            if (regEmpresa != null)
-                _repository.Delete(regEmpresa.Id);
+        public Empresa Create(Empresa empresa)
+        {
+            if (_repository.FindByCnpj(empresa.Cnpj) == null)
+            {
+                return _converter.Parse(_repository.Create(_converter.Parse(empresa)));
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        public void Delete(Guid id)
+        {
+            _repository.Delete(id);
         }
 
         public List<Empresa> FindAll() =>
@@ -33,12 +45,22 @@ namespace Business.Implementation
         public Empresa FindByCnpj(long cnpj) =>
             _converter.Parse(_repository.FindByCnpj(cnpj));
 
+        public Empresa FindByID(Guid id)
+        {
+            return _converter.Parse(_repository.FindById(id));
+        }
+
         public List<Empresa> FindByName(string nome) =>
             _converter.ParseList(_repository.FindByName(nome));
 
+        public Empresa RemoveFornecedor(Guid idEmpresa, Guid idFornecedor)
+        {
+            return _converter.Parse(_repository.RemoveFornecedor(idEmpresa, idFornecedor));
+        }
+
         public Empresa Update(Empresa empresa)
         {
-            var regEmpresa = _repository.FindByCnpj(empresa.Cnpj);
+            var regEmpresa = _repository.FindById(empresa.Id);
 
             if (regEmpresa != null)
             {

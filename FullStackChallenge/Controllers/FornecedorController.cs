@@ -1,6 +1,9 @@
 ﻿using Business;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
+using Model.Data.Dto;
 using Model.Data.ValueObjects;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Tapioca.HATEOAS;
@@ -15,10 +18,12 @@ namespace FullStackChallenge.Controllers
     public class FornecedorController : ControllerBase
     {
         private readonly IFornecedorBusiness _fornecedorBusiness;
+        private readonly IValidator<Fornecedor> _validatorFornecedor;
 
-        public FornecedorController(IFornecedorBusiness fornecedorBusiness)
+        public FornecedorController(IFornecedorBusiness fornecedorBusiness, IValidator<Fornecedor> validator)
         {
             _fornecedorBusiness = fornecedorBusiness;
+            _validatorFornecedor = validator;
         }
 
         // GET: api/<FornecedorController>
@@ -50,7 +55,7 @@ namespace FullStackChallenge.Controllers
                 if (!retorno.Any())
                     return NotFound();
                 else
-                    return Ok(retorno);
+                    return new ObjectResult(retorno);
             }
             else if (!string.IsNullOrWhiteSpace(email))
             {
@@ -59,7 +64,7 @@ namespace FullStackChallenge.Controllers
                 if (!retorno.Any())
                     return NotFound();
                 else
-                    return Ok(retorno);
+                    return new ObjectResult(retorno);
             }
             else
             {
@@ -68,7 +73,7 @@ namespace FullStackChallenge.Controllers
                 if (retorno == null)
                     return NotFound();
                 else
-                    return Ok(retorno);
+                    return new ObjectResult(retorno);
             }
         }
 
@@ -80,8 +85,10 @@ namespace FullStackChallenge.Controllers
         [TypeFilter(typeof(HyperMediaFilter))]
         public ActionResult Post([FromBody] Fornecedor fornecedor)
         {
-            if (fornecedor == null)
-                return BadRequest();
+            var validation = _validatorFornecedor.Validate(fornecedor);
+
+            if (!validation.IsValid)
+                return BadRequest(validation.Errors);
             else
                 return new ObjectResult(_fornecedorBusiness.Create(fornecedor));
         }
@@ -93,29 +100,42 @@ namespace FullStackChallenge.Controllers
         [TypeFilter(typeof(HyperMediaFilter))]
         public ActionResult Put([FromBody] Fornecedor fornecedor)
         {
-            if (fornecedor == null)
-                return BadRequest();
+            var validation = _validatorFornecedor.Validate(fornecedor);
+
+            if (!validation.IsValid)
+                return BadRequest(validation.Errors);
             else
                 return new ObjectResult(_fornecedorBusiness.Update(fornecedor));
         }
 
-        // DELETE api/<FornecedorController>/5
-        [HttpDelete("{documento}")]
+        [HttpPatch("add")]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
         [TypeFilter(typeof(HyperMediaFilter))]
-        public ActionResult Delete(long documento)
+        public ActionResult PatchAdd([FromBody] PatchDto ids)
         {
-            var fornecedor = _fornecedorBusiness.FindByCpfCnpj(documento);
+            return new ObjectResult(_fornecedorBusiness.AddEmpresa(ids.IdPrimeiro, ids.IdSegundo));
+        }
 
-            if (fornecedor == null)
-                return NotFound();
-            else
-            {
-                _fornecedorBusiness.Delete(fornecedor);
+        [HttpPatch("remove")]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(400)]
+        [TypeFilter(typeof(HyperMediaFilter))]
+        public ActionResult PatchRemove([FromBody] PatchDto ids)
+        {
+            return new ObjectResult(_fornecedorBusiness.RemoveEmpresa(ids.IdPrimeiro, ids.IdSegundo));
+        }
 
-                return Ok();
-            }
+        // DELETE api/<FornecedorController>/5
+        [HttpDelete("{id}")]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(400)]
+        [TypeFilter(typeof(HyperMediaFilter))]
+        public ActionResult Delete(Guid id)
+        {
+            _fornecedorBusiness.Delete(id);
+
+            return Ok();
         }
     }
 }

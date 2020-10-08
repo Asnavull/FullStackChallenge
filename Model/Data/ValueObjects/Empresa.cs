@@ -1,10 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Tapioca.HATEOAS;
 
 namespace Model.Data.ValueObjects
 {
     public class Empresa : ISupportsHyperMedia
     {
+        public Guid Id { get; set; } = Guid.NewGuid();
         public string UF { get; set; } = string.Empty;
         public string NomeFantasia { get; set; } = string.Empty;
         public long Cnpj { get; set; } = 0;

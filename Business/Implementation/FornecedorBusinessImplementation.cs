@@ -1,6 +1,7 @@
 ﻿using Model.Data.Converters;
 using Model.Data.ValueObjects;
 using Repository;
+using System;
 using System.Collections.Generic;
 
 namespace Business.Implementation
@@ -16,15 +17,17 @@ namespace Business.Implementation
             _converter = new FornecedorConverter();
         }
 
+        public Fornecedor AddEmpresa(Guid idFornecedor, Guid idEmpresa)
+        {
+            return _converter.Parse(_repository.AddEmpresa(idFornecedor, idEmpresa));
+        }
+
         public Fornecedor Create(Fornecedor fornecedor) =>
             _converter.Parse(_repository.Create(_converter.Parse(fornecedor)));
 
-        public void Delete(Fornecedor fornecedor)
+        public void Delete(Guid id)
         {
-            var regFornecedor = _repository.FindByCpfCnpj(fornecedor.CpfCnpj);
-
-            if (regFornecedor != null)
-                _repository.Delete(regFornecedor.Id);
+            _repository.Delete(id);
         }
 
         public List<Fornecedor> FindAll() =>
@@ -40,14 +43,24 @@ namespace Business.Implementation
             return _converter.Parse(_repository.FindByEmail(email));
         }
 
+        public Fornecedor FindById(Guid id)
+        {
+            return _converter.Parse(_repository.FindById(id));
+        }
+
         public List<Fornecedor> FindByName(string nome)
         {
             return _converter.ParseList(_repository.FindByName(nome));
         }
 
+        public Fornecedor RemoveEmpresa(Guid idFornecedor, Guid idEmpresa)
+        {
+            return _converter.Parse(_repository.RemoveEmpresa(idFornecedor, idEmpresa));
+        }
+
         public Fornecedor Update(Fornecedor fornecedor)
         {
-            var regFornecedor = _repository.FindByCpfCnpj(fornecedor.CpfCnpj);
+            var regFornecedor = _repository.FindById(fornecedor.Id);
 
             if (regFornecedor != null)
             {

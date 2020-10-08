@@ -17,6 +17,7 @@ namespace Model.Data.Converters
 
             return new Fornecedor()
             {
+                Id = origin.Id,
                 CpfCnpj = origin.CpfCnpj,
                 Email = origin.Email,
                 Nome = origin.Nome,
@@ -33,6 +34,7 @@ namespace Model.Data.Converters
 
             return new TbFornecedor()
             {
+                Id = origin.Id,
                 CpfCnpj = origin.CpfCnpj,
                 Nome = origin.Nome,
                 Email = origin.Email,

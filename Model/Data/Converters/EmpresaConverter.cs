@@ -15,6 +15,7 @@ namespace Model.Data.Converters
 
             return new TbEmpresa()
             {
+                Id = origin.Id,
                 Documento = origin.Cnpj,
                 NomeFantasia = origin.NomeFantasia,
                 Uf = origin.UF.ToString()
@@ -30,6 +31,7 @@ namespace Model.Data.Converters
 
             return new Empresa()
             {
+                Id = origin.Id,
                 Cnpj = origin.Documento,
                 NomeFantasia = origin.NomeFantasia,
                 UF = origin.Uf,

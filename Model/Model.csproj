@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <PackageReference Include="Dapper.FluentMap" Version="2.0.0" />
+    <PackageReference Include="FluentValidation.AspNetCore" Version="9.2.0" />
     <PackageReference Include="Tapioca.HATEOAS" Version="1.0.4" />
   </ItemGroup>
 
